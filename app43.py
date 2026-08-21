@@ -15,8 +15,8 @@ st.markdown("(プローブの空中放射画像のグレースケール輝度値
 
 #プローブ名
 probename = st.selectbox(
-    '●プローブ名を選択してください(画像をアップロードする前に選択してください)',
-    ['X20L', 'L18-4', 'L11-3', 'HL18-4', 'WL13-3', 'L14-4', 'MC10-3', 'EC9-3', 'C5-2', 'S4-2', 'S4-2A'])
+    '●下記のBOXよりプローブ名を選択してください',
+    ['','X20L', 'L18-4', 'L11-3', 'HL18-4', 'WL13-3', 'L14-4', 'MC10-3', 'EC9-3', 'C5-2', 'S4-2', 'S4-2A'])
 
 if probename == 'X20L' or probename == 'L18-4' or probename == 'L11-3' or probename == 'WL13-3' or probename == 'L14-4' or probename == 'EC9-3':
    chnumber = 192
@@ -24,11 +24,16 @@ elif probename == 'HL18-4' or probename == 'MC10-3':
    chnumber = 128
 elif probename == 'C5-2':
    chnumber = 160
-else:
+elif probename == 'S4-2' or probename == 'S4-2A':
    chnumber = 64
+else :
+   chnumber = 0.1
 
-if probename:
-   uploaded_file = st.sidebar.file_uploader("超音波画像をアップロード (PNG, JPG, BMP)", type=["png", "jpg", "jpeg", "bmp"])
+uploaded_file = None
+if probename in ['X20L', 'L18-4', 'L11-3', 'HL18-4', 'WL13-3', 'L14-4', 'MC10-3', 'EC9-3', 'C5-2', 'S4-2', 'S4-2A']:
+    uploaded_file = st.sidebar.file_uploader("超音波画像をアップロード (PNG, JPG, BMP)", type=["png", "jpg", "jpeg", "bmp"])
+else :
+   st.info("プローブ名を選択後に、画像をアップロードできます。")
 
 # サイドバー: ファイルアップロード
 if uploaded_file is not None:
@@ -87,8 +92,7 @@ if uploaded_file is not None:
     
     # ROIデータの抽出
     roi_data = g2[y_min:roi5, roi6:roi7]
-    
-
+  
     mean_profile = np.mean(roi_data, axis=0)
     roix = np.arange(rw)
 
@@ -147,14 +151,41 @@ if uploaded_file is not None:
     )
 
     fig_line2.add_hline(
-      y=-20,                          # meanmin_val3 > 20 の閾値ライン
-      line_dash="dash",               # 破線
-      line_color="red",               # 赤色
+      y=-20,
+      line_dash="dash",
+      line_color="red",
       line_width=2,
-      annotation_text="閾値: -20",   # ラベル
-      annotation_position="top right",
-      annotation_font_color="red"
-  )
+      annotation=dict(
+        text="閾値: -20（劣化）",
+        font=dict(color="red", size=16),
+        align="right",
+        xref="paper",
+        x=1.0,
+        yref="y",
+        y=-20,
+        yshift=-30,   
+        showarrow=False,
+      )
+    )
+
+    fig_line2.add_hline(
+      y=-15,
+      line_dash="dash",
+      line_color="orange",
+      line_width=2,
+      annotation=dict(
+        text="閾値: -15（要注意）",
+        font=dict(color="orange", size=16),
+        align="right",
+        xref="paper",
+        x=1.0,
+        yref="y",
+        y=-15,
+        yshift=10,  
+        showarrow=False,
+      )
+    )
+
     fig_line2.update_traces(line_color="#00A8FF")
     fig_line2.update_layout(height=280, yaxis_range=[-70, 30], margin=dict(l=20, r=20, t=30, b=20))
     st.plotly_chart(fig_line2, use_container_width=True)
@@ -198,20 +229,27 @@ if uploaded_file is not None:
     for i in unique_data1_b:
       unique_data2_b.append(f"{i}ch")
 
+    degraded_ch_set = set(unique_data1.tolist())
+    unique_data1_b_filtered = unique_data1_b[~unique_data1_b.isin(degraded_ch_set)]
+
+    unique_data2_b = []
+    for i in unique_data1_b_filtered:
+        unique_data2_b.append(f"{i}ch")
+
     # 劣化ch判定アルゴリズム
     st.header("📊プローブ劣化判定結果")   
     if meanmin_val3 >20 :
-        st.error('プローブ劣化判定：不合格🚨')
-        with st.expander("劣化した詳細chを確認する"):
+        st.error('プローブ劣化判定：劣化chあり🚨')
+        with st.expander("劣化している詳細chを確認する"):
                for i in unique_data2:
                   st.write(i)
-        with st.expander("経過観察が必要な詳細chを確認する"):
+        with st.expander("要注意が必要な詳細chを確認する"):
             if unique_data2_b:
               for i in unique_data2_b:
                 st.write(i)
     elif meanmin_val3 > 15 :
-        st.warning('プローブ劣化判定：要経過観察⚠️')
-        with st.expander("経過観察が必要な詳細chを確認する"):
+        st.warning('プローブ劣化判定：要注意⚠️')
+        with st.expander("要注意が必要な詳細chを確認する"):
             if unique_data2_b:
               for i in unique_data2_b:
                 st.write(i)
@@ -345,7 +383,4 @@ if uploaded_file is not None:
 
     st.header("●自由記述欄")
     st.text_area("コメントを入力してください")
-
-else:
-    st.info("👈 サイドバーから劣化判定したいプローブの空中放射画像（PNG/JPG等）をアップロードしてください。")
 
