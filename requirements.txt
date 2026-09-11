@@ -11,3 +11,8 @@
  matplotlib.backends.backend_pdf
  PdfPages
  matplotlib.ticker
+ time
+ japanize_matplotlib
+ os
+ sys
+
