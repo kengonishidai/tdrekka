@@ -1,18 +1,9 @@
- streamlit
- cv2
- io
- datetime
- numpy
- pand
- plotly.express
- matplotlib.pyplot
- matplotlib.gridspec
- matplotlib.patches
- matplotlib.backends.backend_pdf
- PdfPages
- matplotlib.ticker
- time
- japanize_matplotlib
- os
- sys
+streamlit
+opencv-python-headless
+numpy
+pandas
+plotly
+matplotlib
+japanize-matplotlib
+Pillow
 
