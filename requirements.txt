@@ -1,9 +1,4 @@
+python-3.11
 streamlit
-opencv-python-headless
-numpy
-pandas
-plotly
 matplotlib
 japanize-matplotlib
-Pillow
-
